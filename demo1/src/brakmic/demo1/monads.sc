@@ -63,7 +63,6 @@ object app {
       values.foreach(elem => {
 	      newValues :: List(fn(elem))
       })
-      newValues.foreach { e => println(e.toString()) }
-      new aMonad[Y](newValues.toList)
+      new aMonad[Y](newValues)
     }
   }
