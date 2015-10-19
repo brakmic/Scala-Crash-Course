@@ -1,37 +1,25 @@
 package brakmic.monads
 
 object app {
-  val entries = List(AClass(1,"A"), AClass(2,"A"), AClass(3,"A"))
-                                                  //> entries  : List[brakmic.monads.AClass] = List(ID: 1, Value: A, ID: 2, Value:
-                                                  //|  A, ID: 3, Value: A)
-  val monad = new aMonad(entries)                 //> monad  : brakmic.monads.aMonad[brakmic.monads.AClass] = brakmic.monads.aMona
-                                                  //| d@3cda1055
+  val entries = AClass(1,"A")                     //> entries  : brakmic.monads.AClass = ID: 1, Value: A
+  val monad = aMonad(entries)                     //> monad  : brakmic.monads.aMonad[brakmic.monads.AClass] = aMonad(ID: 1, Value: 
+                                                  //| A)
   
   def convertAToB(a: AClass) : BClass = {
     println("map on " + a.toString())
-    new BClass(a.id + 100, "COPIED_FROM_" + a.value, "EXTRA " + a.id)
+    new BClass(a.id + 100, "COPY_FROM_" + a.value, "EXTRA " + a.id)
   }                                               //> convertAToB: (a: brakmic.monads.AClass)brakmic.monads.BClass
   
-  def flatConvertAToB(a: AClass) : Monad[BClass] = {
-    println("flatMap on " + a.toString())
-    val entries = List(BClass(1,"B","extra 1"), BClass(2,"B","extra 2"), BClass(2,"B","extra 3"))
-    new aMonad[BClass](entries)
-  }                                               //> flatConvertAToB: (a: brakmic.monads.AClass)brakmic.monads.Monad[brakmic.mona
-                                                  //| ds.BClass]
-  
-  val fromMap = monad.map { entry => convertAToB(entry) }
-                                                  //> map on ID: 1, Value: A
-                                                  //| map on ID: 2, Value: A
-                                                  //| map on ID: 3, Value: A
-                                                  //| fromMap  : brakmic.monads.Monad[brakmic.monads.BClass] = brakmic.monads.aMon
-                                                  //| ad@7a5d012c
-  val fromFlatMap = monad.flatMap { entry => flatConvertAToB(entry)}
-                                                  //> flatMap on ID: 1, Value: A
-                                                  //| flatMap on ID: 2, Value: A
-                                                  //| flatMap on ID: 3, Value: A
-                                                  //| fromFlatMap  : brakmic.monads.Monad[brakmic.monads.BClass] = brakmic.monads.
-                                                  //| aMonad@6b2fad11
-                                                  
+  def flatMapAToB(a: AClass) : Monad[BClass] = {
+    aMonad(new BClass(1,"some value","some extra value"))
+  }                                               //> flatMapAToB: (a: brakmic.monads.AClass)brakmic.monads.Monad[brakmic.monads.B
+                                                  //| Class]
+                             
+  monad.map { convertAToB }                       //> map on ID: 1, Value: A
+                                                  //| res0: brakmic.monads.Monad[brakmic.monads.BClass] = aMonad(ID: 101, Value: C
+                                                  //| OPY_FROM_A, Extra: EXTRA 1)
+  monad.flatMap { flatMapAToB }                   //> res1: brakmic.monads.Monad[brakmic.monads.BClass] = aMonad(ID: 1, Value: som
+                                                  //| e value, Extra: some extra value)
 }
 
   sealed trait Monad[+A] {
@@ -51,17 +39,7 @@ object app {
     }
   }
   
-  class aMonad[+A](values: List[A]) extends Monad[A] {
-    override def map[B](fn: A => B) : Monad[B] = {
-      val bEntries = values.map(entry => fn(entry))
-      new aMonad[B](bEntries)
-    }
-
-    override def flatMap[B](fn: A => Monad[B]) : Monad[B] = {
-      var newValues = List[B]()
-      values.foreach(elem => {
-	      newValues :: List(fn(elem))
-      })
-      new aMonad[B](newValues)
-    }
+  case class aMonad[+A](a: A) extends Monad[A] {
+    override def map[B](fn: A => B) : Monad[B] = new aMonad[B](fn(a))
+    override def flatMap[B](fn: A => Monad[B]) : Monad[B] = fn(a)
   }
