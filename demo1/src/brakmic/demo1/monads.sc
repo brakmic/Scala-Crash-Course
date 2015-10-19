@@ -25,7 +25,6 @@ object app {
                                                   //| map on ID: 3, Value: A
                                                   //| fromMap  : brakmic.monads.Monad[brakmic.monads.BClass] = brakmic.monads.aMon
                                                   //| ad@7a5d012c
-                                                  
   val fromFlatMap = monad.flatMap { entry => flatConvertAToB(entry)}
                                                   //> flatMap on ID: 1, Value: A
                                                   //| flatMap on ID: 2, Value: A
