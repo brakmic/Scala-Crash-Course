@@ -35,11 +35,11 @@ object app {
                                                   
 }
 
-  trait Monad[X] {
-    def map[Y](fun: X => Y): Monad[Y]
-    def flatMap[Y](fun: X => Monad[Y]): Monad[Y]
+  sealed trait Monad[+A] {
+    def map[B](fun: A => B): Monad[B]
+    def flatMap[B](fun: A => Monad[B]): Monad[B]
   }
-
+  
   case class AClass(id: Int = -1, value: String = "undefined") {
     override def toString() : String = {
       s"ID: $id, Value: $value"
@@ -52,17 +52,17 @@ object app {
     }
   }
   
-  class aMonad[X](values: List[X]) extends Monad[X] {
-    def map[Y](fn: X => Y) : Monad[Y] = {
+  class aMonad[+A](values: List[A]) extends Monad[A] {
+    override def map[B](fn: A => B) : Monad[B] = {
       val bEntries = values.map(entry => fn(entry))
-      new aMonad[Y](bEntries)
+      new aMonad[B](bEntries)
     }
 
-    def flatMap[Y](fn: X => Monad[Y]) : Monad[Y] = {
-      var newValues = List[Y]()
+    override def flatMap[B](fn: A => Monad[B]) : Monad[B] = {
+      var newValues = List[B]()
       values.foreach(elem => {
 	      newValues :: List(fn(elem))
       })
-      new aMonad[Y](newValues)
+      new aMonad[B](newValues)
     }
   }
